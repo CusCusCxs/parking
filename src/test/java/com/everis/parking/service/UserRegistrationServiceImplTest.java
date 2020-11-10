@@ -43,7 +43,7 @@ public class UserRegistrationServiceImplTest {
 	public UserRegistrationRequestDto getUserRegistrationRequestDto()
 	{
 		UserRegistrationRequestDto userRegistrationRequestDto = new UserRegistrationRequestDto();
-		userRegistrationRequestDto.setHclExperience(6F);
+		userRegistrationRequestDto.setEverisExperience(6F);
 		userRegistrationRequestDto.setMobileNumber("8877669955");
 		userRegistrationRequestDto.setOverAllExperience(16F);
 		userRegistrationRequestDto.setPassword("123454");

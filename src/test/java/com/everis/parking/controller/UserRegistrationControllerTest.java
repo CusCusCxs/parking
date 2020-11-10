@@ -41,7 +41,7 @@ public class UserRegistrationControllerTest {
 	public UserRegistrationRequestDto getUserRegistrationRequestDto()
 	{
 		userRegistrationRequestDto = new UserRegistrationRequestDto();
-		userRegistrationRequestDto.setHclExperience(13F);
+		userRegistrationRequestDto.setEverisExperience(13F);
 		userRegistrationRequestDto.setMobileNumber("1234567891");
 		userRegistrationRequestDto.setOverAllExperience(20F);
 		userRegistrationRequestDto.setPassword("1223");

@@ -26,6 +26,9 @@ import com.everis.parking.repository.RequestSlotRepository;
 import com.everis.parking.util.ParkingConstants;
 
 
+/**
+ * Implementação da interface BookService que fornece métodos para reservar e sortear vagas de estacionamento.
+ */
 @Service
 public class BookServiceImpl implements BookService {
 	private static Logger logger = LoggerFactory.getLogger(BookServiceImpl.class);
@@ -40,7 +43,14 @@ public class BookServiceImpl implements BookService {
 	AvailableSlotRepository availableSlotRepository;
 
 	Random random = new Random();
-	
+
+	/**
+	 * Reserva uma vaga de estacionamento com base nas informações fornecidas.
+	 *
+	 * @param bookRequestDto O objeto BookRequestDto contendo as informações necessárias para a reserva.
+	 * @return O objeto BookResponseDto com a mensagem de sucesso e o ID da vaga reservada.
+	 * @throws CommonException Se nenhum slot estiver disponível ou se o espaço já estiver reservado.
+	 */
 	@Transactional(isolation = Isolation.REPEATABLE_READ)
 	@Override
 	public BookResponseDto bookSlot(BookRequestDto bookRequestDto) {
@@ -50,7 +60,6 @@ public class BookServiceImpl implements BookService {
 		if (!availableSlot.isPresent())
 			throw new CommonException("Nenhum slot presente");
 
-		
 		List<AvailableSlot> availableSlots = availableSlotRepository.findByAvailableDate(LocalDate.now());
 		if (availableSlots.isEmpty())
 			throw new CommonException(ParkingConstants.NO_AVAILABLE_SLOTS);
@@ -58,7 +67,6 @@ public class BookServiceImpl implements BookService {
 			availableSlotRepository.lockSlot(availableSlots.get(0).getAvailableSlotId());
 		} catch (org.hibernate.exception.LockAcquisitionException e) {
 			throw new CommonException("Espaço já reservado");
-
 		}
 
 		AvailableSlot availableSlotDb = availableSlots.get(0);
@@ -76,21 +84,29 @@ public class BookServiceImpl implements BookService {
 		return new BookResponseDto("slot reservado", "Seu id de slot é:" + availableSlotDb.getSlotId());
 	}
 
+	/**
+	 * Converte uma string de data no formato especificado para um objeto LocalDate.
+	 *
+	 * @param data A string de data a ser convertida.
+	 * @return O objeto LocalDate correspondente à string de data fornecida.
+	 */
 	public LocalDate getLocalDate(String data) {
 		DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(ParkingConstants.DATE_FORMAT);
 		return LocalDate.parse(data, dateTimeFormatter);
-
 	}
 
-	
+	/**
+	 * Realiza o sorteio das vagas de estacionamento para o dia seguinte.
+	 *
+	 * @return O objeto BookResponseDto com a mensagem de sucesso.
+	 */
 	@Scheduled(fixedRate = 1*60*1000)
 	@Override
 	public BookResponseDto doRaffle() {
-		 logger.info("A hora atual é :: " + Calendar.getInstance().getTime());
+		logger.info("A hora atual é :: " + Calendar.getInstance().getTime());
 
 		List<RequestSlot> requestSlotList = requestSlotRepository.findByRequestDate(LocalDate.now().plusDays(1));
-		List<AvailableSlot> availableSlotsList = availableSlotRepository
-				.findByAvailableDate(LocalDate.now().plusDays(1));
+		List<AvailableSlot> availableSlotsList = availableSlotRepository.findByAvailableDate(LocalDate.now().plusDays(1));
 		for (int i = 0; i < availableSlotsList.size(); i++) {
 			for (int j = 0; j < requestSlotList.size(); j++) {
 				int randomIndex = random.nextInt(requestSlotList.size() - 1);
@@ -101,11 +117,9 @@ public class BookServiceImpl implements BookService {
 				availableSlotsList.get(randomIndex).setStatus("Reservado");
 
 				availableSlotRepository.save(availableSlotsList.get(randomIndex));
-
 			}
 		}
 
 		return new BookResponseDto("Sucesso", null);
 	}
-
 }
